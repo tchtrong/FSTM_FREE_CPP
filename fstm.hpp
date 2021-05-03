@@ -1,8 +1,8 @@
 // (C) Copyright 2012, Khoat Than (khoat [at] jaist [dot] ac [dot] jp)
 
-// This file is part of FSTM-free. 
-// FSTM-free is a dimension-free implementation of FSTM. In other words, 
-// except the initial step, all other steps in the learning algorithm 
+// This file is part of FSTM-free.
+// FSTM-free is a dimension-free implementation of FSTM. In other words,
+// except the initial step, all other steps in the learning algorithm
 // do not depend on dimensionality V of the orginal corpus.
 
 // FSTM-free is free software; you can redistribute it and/or modify it under
@@ -23,23 +23,19 @@
 #ifndef FSTM_H
 #define FSTM_H
 
-
 typedef struct
 {
-    int* topicID; // topic index
-    double* value;
+    int *topicID; // topic index
+    double *value;
     int length;
 } pairs;
 
 typedef struct
 {
-    pairs *bb;		//topics
+    pairs *bb;      //topics
     float t_sparse; //percentage of non-zeros in a topic
     int num_topics;
     int num_terms;
 } fstm_model;
 
-
-
 #endif
-

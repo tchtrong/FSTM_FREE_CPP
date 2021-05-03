@@ -1,8 +1,8 @@
 // (C) Copyright 2012, Khoat Than (khoat [at] jaist [dot] ac [dot] jp)
 
-// This file is part of FSTM-free. 
-// FSTM-free is a dimension-free implementation of FSTM. In other words, 
-// except the initial step, all other steps in the learning algorithm 
+// This file is part of FSTM-free.
+// FSTM-free is a dimension-free implementation of FSTM. In other words,
+// except the initial step, all other steps in the learning algorithm
 // do not depend on dimensionality V of the orginal corpus.
 
 // FSTM-free is free software; you can redistribute it and/or modify it under
@@ -22,226 +22,275 @@
 
 #include "fstm-model.hpp"
 
-fstm_model* fstm_model_New(int num_terms, int num_topics, float t_sparse)
+fstm_model *fstm_model_New(int num_terms, int num_topics, float t_sparse)
 {
-    fstm_model* model;	int k;
+	fstm_model *model;
+	int k;
 
-    model = (fstm_model*) malloc(sizeof(fstm_model));
-	if (model ==0) 
-		{ printf("\n fstm_model_New: cannot allocate memory for the model.\n"); exit(0); }
-	model->num_topics	= num_topics;
-    model->num_terms	= num_terms;
-	model->t_sparse		= t_sparse;
-    model->bb = (pairs*)malloc(sizeof(pairs)*num_terms);
+	model = (fstm_model *)std::malloc(sizeof(fstm_model));
+	if (model == 0)
+	{
+		printf("\n fstm_model_New: cannot allocate memory for the model.\n");
+		exit(0);
+	}
+	model->num_topics = num_topics;
+	model->num_terms = num_terms;
+	model->t_sparse = t_sparse;
+	model->bb = (pairs *)std::malloc(sizeof(pairs) * num_terms);
 	if (model->bb == 0)
-		{printf("\n fstm_model_New: failed to allocate memory for model->bb!");
-				exit(0); }
+	{
+		printf("\n fstm_model_New: failed to allocate memory for model->bb!");
+		exit(0);
+	}
 	for (k = 0; k < num_terms; k++)
 	{
-		model->bb[k].topicID	= malloc(sizeof(int)* num_topics);
-		model->bb[k].value		= malloc(sizeof(double)* num_topics);
+		model->bb[k].topicID = reinterpret_cast<int *>(std::malloc(sizeof(int) * num_topics));
+		model->bb[k].value = reinterpret_cast<double *>(std::malloc(sizeof(double) * num_topics));
 		if (model->bb[k].topicID == 0 || model->bb[k].value == 0)
-			{printf("\n fstm_model_New: failed to allocate memory for model->bb[%d] !", k); exit(0); }
+		{
+			printf("\n fstm_model_New: failed to allocate memory for model->bb[%d] !", k);
+			exit(0);
+		}
 	}
-return(model);
+	return (model);
 }
 
-void fstm_model_Free(fstm_model* model)
+void fstm_model_free(fstm_model *model)
 {
-    int i;
-    for (i = model->num_terms -1; i>=0; i--)
-    {
-		free(model->bb[i].topicID);  free(model->bb[i].value);  
-    }
-	free(model->bb);  free(model);
+	int i;
+	for (i = model->num_terms - 1; i >= 0; i--)
+	{
+		std::free(model->bb[i].topicID);
+		std::free(model->bb[i].value);
+	}
+	std::free(model->bb);
+	std::free(model);
 }
-
 
 /*
  * save an fstm model
  *
  */
 
-void fstm_model_Save(fstm_model* model, char* model_root)
+void fstm_model_Save(fstm_model *model, char *model_root)
 {
-    char filename[1000];    FILE *fileptr;
-    int i, j, k;			double **tmp;
+	char filename[1000];
+	FILE *fileptr;
+	int i, j, k;
+	double **tmp;
 
-    sprintf(filename, "%s.other", model_root);
-    fileptr = fopen(filename, "w");
+	sprintf(filename, "%s.other", model_root);
+	fileptr = fopen(filename, "w");
 	fprintf(fileptr, "num_topics: %d \n", model->num_topics);
 	fprintf(fileptr, "num_terms: %d \n", model->num_terms);
 	fprintf(fileptr, "topic_sparsity: %f \n", model->t_sparse);
 	fclose(fileptr);
 	sprintf(filename, "%s.topic", model_root);
-    fileptr = fopen(filename, "w");
-	tmp = malloc(sizeof(double*) * model->num_topics);
+	fileptr = fopen(filename, "w");
+	tmp = reinterpret_cast<double **>(std::malloc(sizeof(double *) * model->num_topics));
 	for (k = 0; k < model->num_topics; k++)
 	{
-		tmp[k] = malloc(sizeof(double) * model->num_terms);
-		if (tmp[k] == NULL) {printf("Cannot allocate memory.\n"); exit(0); }
-		for (i = 0; i < model->num_terms; i++) tmp[k][i] = 0;
+		tmp[k] = reinterpret_cast<double *>(std::malloc(sizeof(double) * model->num_terms));
+		if (tmp[k] == NULL)
+		{
+			printf("Cannot allocate memory.\n");
+			exit(0);
+		}
+		for (i = 0; i < model->num_terms; i++)
+			tmp[k][i] = 0;
 	}
 	for (i = 0; i < model->num_terms; i++)
 		if (model->bb[i].length > 0)
-			for (j = 0; j < model->bb[i].length; j++) 
+			for (j = 0; j < model->bb[i].length; j++)
 				tmp[model->bb[i].topicID[j]][i] = model->bb[i].value[j];
 	//saving
 	for (i = 0; i < model->num_topics; i++)
-    {
+	{
 		for (j = 0; j < model->num_terms; j++)
-			if (tmp[i][j] > 0)	fprintf(fileptr, "%1.10f ", tmp[i][j]) ;
-			else fprintf(fileptr, "0 ") ;
+			if (tmp[i][j] > 0)
+				fprintf(fileptr, "%1.10f ", tmp[i][j]);
+			else
+				fprintf(fileptr, "0 ");
 		fprintf(fileptr, "\n");
-    }
-    fclose(fileptr);
-	for (k = model->num_topics -1; k>= 0; k--)	free(tmp[k]);
+	}
+	fclose(fileptr);
+	for (k = model->num_topics - 1; k >= 0; k--)
+		std::free(tmp[k]);
 }
 
-
-fstm_model* fstm_model_Load(char* model_root)
+fstm_model *fstm_model_Load(char *model_root)
 {
-    char filename[1000];    FILE* fileptr;	fstm_model *model;
-    int i, j, num_terms, num_topics, length;
-    double x, **tmp;
+	char filename[1000];
+	std::FILE *fileptr;
+	fstm_model *model;
+	int i, j, num_terms, num_topics, length;
+	double x, **tmp;
 
 	sprintf(filename, "%s.other", model_root);
-    fileptr = fopen(filename, "r");
-	fscanf(fileptr, "num_topics: %d \n", &num_topics);
-	fscanf(fileptr, "num_terms: %d \n", &num_terms);
-	fscanf(fileptr, "topic_sparsity: %lf", &x);
-	fclose(fileptr);
+	fileptr = fopen(filename, "r");
+	std::fscanf(fileptr, "num_topics: %d \n", &num_topics);
+	std::fscanf(fileptr, "num_terms: %d \n", &num_terms);
+	std::fscanf(fileptr, "topic_sparsity: %lf", &x);
+	std::fclose(fileptr);
 
-    sprintf(filename, "%s.topic", model_root);
-    printf("loading %s\n", filename);
-    fileptr = fopen(filename, "r");
+	sprintf(filename, "%s.topic", model_root);
+	printf("loading %s\n", filename);
+	fileptr = fopen(filename, "r");
 	if (fileptr == NULL)
-	{ 		printf("Cannot open %s\n", filename);  exit(0);	}
+	{
+		printf("Cannot open %s\n", filename);
+		exit(0);
+	}
 	//read to array
-	tmp = malloc(sizeof(double*) * num_topics);
+	tmp = reinterpret_cast<double **>(std::malloc(sizeof(double *) * num_topics));
 	for (j = 0; j < num_topics; j++)
 	{
-		tmp[j] = malloc(sizeof(double) * num_terms);
-		if (tmp[j] == NULL) {printf("Cannot allocate memory.\n"); exit(0); }
-		for (i = 0; i < num_terms; i++) tmp[j][i] = 0;
+		tmp[j] = reinterpret_cast<double *>(std::malloc(sizeof(double) * num_terms));
+		if (tmp[j] == NULL)
+		{
+			printf("Cannot allocate memory.\n");
+			exit(0);
+		}
+		for (i = 0; i < num_terms; i++)
+			tmp[j][i] = 0;
 	}
 	for (i = 0; i < num_topics; i++)
 		for (j = 0; j < num_terms; j++)
-        {
-			fscanf(fileptr, "%lf", &x);		tmp[i][j] = x;
-	    }
-	fclose(fileptr); 
+		{
+			fscanf(fileptr, "%lf", &x);
+			tmp[i][j] = x;
+		}
+	fclose(fileptr);
 	//save to model
-    model = fstm_model_New(num_terms, num_topics, 0.1);
+	model = fstm_model_New(num_terms, num_topics, 0.1);
 	for (i = 0; i < num_terms; i++)
-    {
+	{
 		length = 0;
 		for (j = 0; j < num_topics; j++)
-			if (tmp[j][i] > 0) length++;
+			if (tmp[j][i] > 0)
+				length++;
 		model->bb[i].length = length;
-		if (length < 1) continue;
+		if (length < 1)
+			continue;
 		length = 0;
-        for (j = 0; j < num_topics; j++)
+		for (j = 0; j < num_topics; j++)
 			if (tmp[j][i] > 0)
 			{
 				model->bb[i].topicID[length] = j;
 				model->bb[i].value[length] = tmp[j][i];
 				length++;
 			}
-    }
-	for (i = model->num_topics -1; i>= 0; i--)	free(tmp[i]);
+	}
+	for (i = model->num_topics - 1; i >= 0; i--)
+		std::free(tmp[i]);
 	printf(" Model was loaded.\n");
-return(model);
+	return (model);
 }
 
-
-void save_topic_docs_fstm(char* model_root, corpus *aa, corpus *corp, int num_topics)
+void save_topic_docs_fstm(char *model_root, corpus *aa, corpus *corp, int num_topics)
 {
-    char filename[1000];    FILE *fileptr;
-    int i, j;	double tmp[num_topics];
+	char filename[1000];
+	FILE *fileptr;
+	int i, j;
+	double *tmp = new double[num_topics];
 
-    sprintf(filename, "%s-topics-docs-contribute.dat", model_root);
-    fileptr = fopen(filename, "w");
+	sprintf(filename, "%s-topics-docs-contribute.dat", model_root);
+	fileptr = fopen(filename, "w");
 
 	for (i = 0; i < corp->num_docs; i++)
-    {
-		for (j = 0; j < num_topics; j++) tmp[j] = 0;
+	{
+		for (j = 0; j < num_topics; j++)
+			tmp[j] = 0;
 		for (j = 0; j < aa->docs[i].length; j++)
 			tmp[aa->docs[i].words[j]] = aa->docs[i].counts[j];
-		switch (UNSUPERVISED)	
+		switch (UNSUPERVISED)
 		{
-			case 1 :		//simply write a matrix (unsupervised)
-				for (j = 0; j < num_topics; j++)
-					if (tmp[j] > 0)	fprintf(fileptr, "%1.10f ", tmp[j]) ;
-					else fprintf(fileptr, "0 ") ;
-				break;
-			case 2 :		//write to a file in Libsvm format (multi-class single-label)
-				fprintf(fileptr, "%d ", corp->label_names[corp->docs[i].label]);
-				for (j = 0; j < num_topics; j++)
-					if (tmp[j] > 0)	fprintf(fileptr, "%d:%1.10f ", j+1, tmp[j]);
-				break;
+		case 1: //simply write a matrix (unsupervised)
+			for (j = 0; j < num_topics; j++)
+				if (tmp[j] > 0)
+					fprintf(fileptr, "%1.10f ", tmp[j]);
+				else
+					fprintf(fileptr, "0 ");
+			break;
+		case 2: //write to a file in Libsvm format (multi-class single-label)
+			fprintf(fileptr, "%d ", corp->label_names[corp->docs[i].label]);
+			for (j = 0; j < num_topics; j++)
+				if (tmp[j] > 0)
+					fprintf(fileptr, "%d:%1.10f ", j + 1, tmp[j]);
+			break;
 		}
 		fprintf(fileptr, "\n");
-    }
-    fclose(fileptr);
+	}
+	fclose(fileptr);
+	delete[] tmp;
 }
 
-
-void L1_normalize_sparse_topics(fstm_model* model)
+void L1_normalize_sparse_topics(fstm_model *model)
 {
 	int i, j;
-	double  *temp;
-	temp = malloc(sizeof(double)*model->num_topics);
-	for (i = 0; i < model->num_topics; i++) temp[i] = 0;
+	double *temp;
+	temp = reinterpret_cast<double *>(std::malloc(sizeof(double) * model->num_topics));
+	for (i = 0; i < model->num_topics; i++)
+		temp[i] = 0;
 	for (i = 0; i < model->num_terms; i++)
 		if (model->bb[i].length > 0)
-		for (j = 0; j < model->bb[i].length; j++)
-			temp[model->bb[i].topicID[j]] += model->bb[i].value[j];
+			for (j = 0; j < model->bb[i].length; j++)
+				temp[model->bb[i].topicID[j]] += model->bb[i].value[j];
 
 	for (i = 0; i < model->num_terms; i++)
 		if (model->bb[i].length > 0)
-		for (j = 0; j < model->bb[i].length; j++)
-			model->bb[i].value[j] /= temp[model->bb[i].topicID[j]];
-	free(temp);
+			for (j = 0; j < model->bb[i].length; j++)
+				model->bb[i].value[j] /= temp[model->bb[i].topicID[j]];
+	std::free(temp);
 }
 
-
 void initialize_random_topics(fstm_model *model)
-{//initialize topics randomly
+{ //initialize topics randomly
 	int i, j, k, nnz, *temp;
-	nnz  = (int)round(model->t_sparse * model->num_topics);
-	temp = malloc(sizeof(int)*model->num_topics);
-    for (i = 0; i < model->num_terms; i++)
-    {
-		for (j = 0; j < model->num_topics; j++) temp[j] = 0;
+	nnz = (int)round(model->t_sparse * model->num_topics);
+	temp = reinterpret_cast<int *>(std::malloc(sizeof(int) * model->num_topics));
+	for (i = 0; i < model->num_terms; i++)
+	{
+		for (j = 0; j < model->num_topics; j++)
+			temp[j] = 0;
 		for (j = 0; j < nnz; j++)
-			{	k = rand() % model->num_topics; temp[k] = 1; }
+		{
+			k = rand() % model->num_topics;
+			temp[k] = 1;
+		}
 		k = 0;
-		for (j = 0; j < model->num_topics; j++) 
+		for (j = 0; j < model->num_topics; j++)
 			if (temp[j] > 0)
 			{
-				model->bb[i].topicID[k]	= j;
-				model->bb[i].value[k]	= rand(); //% 1000;
+				model->bb[i].topicID[k] = j;
+				model->bb[i].value[k] = std::rand(); //% 1000;
 				k++;
 			}
 		model->bb[i].length = k;
-    }
+	}
 	L1_normalize_sparse_topics(model);
-	free(temp);
+	std::free(temp);
 }
 
-void read_settings(char* filename)
+void read_settings(const char *filename)
 {
-    FILE* fileptr; char str[2000]; int n=2000;
-    fileptr = fopen(filename, "r");
-	fgets(str, n, fileptr);	sscanf(str, "%d", &EM_MAX_ITER);
-	fgets(str, n, fileptr);	sscanf(str, "%f", &EM_CONVERGED);
-	fgets(str, n, fileptr);	sscanf(str, "%d", &INF_MAX_ITER);
-	fgets(str, n, fileptr);	sscanf(str, "%f", &INF_CONVERGED);
-	fgets(str, n, fileptr);	sscanf(str, "%f", &T_SPARSE);
-	fgets(str, n, fileptr);	sscanf(str, "%d", &UNSUPERVISED);
-	fgets(str, n, fileptr);	sscanf(str, "%d", &WARM_START);
-    fclose(fileptr);
+	std::FILE *fileptr;
+	char str[2000];
+	int n = 2000;
+	fileptr = std::fopen(filename, "r");
+	std::fgets(str, n, fileptr);
+	std::sscanf(str, "%d", &EM_MAX_ITER);
+	std::fgets(str, n, fileptr);
+	std::sscanf(str, "%f", &EM_CONVERGED);
+	std::fgets(str, n, fileptr);
+	std::sscanf(str, "%d", &INF_MAX_ITER);
+	std::fgets(str, n, fileptr);
+	std::sscanf(str, "%f", &INF_CONVERGED);
+	std::fgets(str, n, fileptr);
+	std::sscanf(str, "%f", &T_SPARSE);
+	std::fgets(str, n, fileptr);
+	std::sscanf(str, "%d", &UNSUPERVISED);
+	std::fgets(str, n, fileptr);
+	std::sscanf(str, "%d", &WARM_START);
+	std::fclose(fileptr);
 }
-
-

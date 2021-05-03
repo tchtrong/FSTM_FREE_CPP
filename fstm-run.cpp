@@ -1,8 +1,8 @@
 // (C) Copyright 2012, Khoat Than (khoat [at] jaist [dot] ac [dot] jp)
 
-// This file is part of FSTM-free. 
-// FSTM-free is a dimension-free implementation of FSTM. In other words, 
-// except the initial step, all other steps in the learning algorithm 
+// This file is part of FSTM-free.
+// FSTM-free is a dimension-free implementation of FSTM. In other words,
+// except the initial step, all other steps in the learning algorithm
 // do not depend on dimensionality V of the orginal corpus.
 
 // FSTM-free is free software; you can redistribute it and/or modify it under
@@ -22,30 +22,39 @@
 
 #include "fstm-est-inf.hpp"
 
-void main(int argc, char* argv[])
+float EM_CONVERGED;
+int EM_MAX_ITER;
+float T_SPARSE;
+int NTOPICS;
+float INF_CONVERGED;
+int INF_MAX_ITER;
+int UNSUPERVISED, WARM_START;
+
+int main(int argc, char *argv[])
 {
-    corpus *corpus;	double perp;
+	corpus *corpus;
+	double perp;
 	char str[1000], save[1000];
 
-	if (strcmp(argv[1], "est")==0)
-	{	// ./fstm est <model-folder> <train-data> <topics>
-		// Eg: ./fstm est ap10 ap-train.txt 10	
+	if (strcmp(argv[1], "est") == 0 && argc)
+	{ // ./fstm est <model-folder> <train-data> <topics>
+		// Eg: ./fstm est ap10 ap-train.txt 10
 		read_settings("fstm-settings.txt");
 		corpus = read_data(argv[3], UNSUPERVISED);
-		NTOPICS = atol(argv[4]); 
+		NTOPICS = atol(argv[4]);
 		printf("\nNumber of topics: %d \n", NTOPICS);
 		make_directory(argv[2]);
 		fstm_Learn(argv[2], corpus);
 	}
-	if (strcmp(argv[1], "inf")==0)
-	{// ./fstm inf <model-folder> <test-data>
+	if (strcmp(argv[1], "inf") == 0)
+	{ // ./fstm inf <model-folder> <test-data>
 		// Eg: ./fstm inf ap10 ap-test.txt
 		read_settings("fstm-settings.txt");
-		corpus = read_data(argv[3], UNSUPERVISED);  //where to infer
+		corpus = read_data(argv[3], UNSUPERVISED); //where to infer
 		sprintf(str, "%s/final-fstm", argv[2]);
 		sprintf(save, "%s/final-fstm-inf", argv[2]);
 		perp = fstm_Infer(str, save, corpus);
 		printf("\n Perplexity = %10.10f \n", perp);
 	}
+	return 0;
 }
-

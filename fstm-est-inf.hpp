@@ -13,20 +13,20 @@
 #include "utils.hpp"
 #include "fstm-model.hpp"
 
-void fstm_Learn(char* directory, corpus* corp);
+void fstm_Learn(char *directory, corpus *corp);
 
-double doc_projection(fstm_model* model, document doc, corpus *aa, int docID);
+double doc_projection(fstm_model *model, document doc, corpus *aa, int docID);
 
-void warm_start_init(fstm_model* model, document doc, document coeff, double *opt, double *temp, double ep);
+void warm_start_init(fstm_model *model, document doc, document coeff, double *opt, double *temp, double ep);
 
-void update_sparse_topics(fstm_model* model, corpus* corp, corpus *aa, int EM_iter, int *b_ind);
+void update_sparse_topics(fstm_model *model, corpus *corp, corpus *aa, int EM_iter, int *b_ind);
 
-void write_sparse_statistics(char *model_root, fstm_model* model, corpus* corp, corpus *aa);
+void write_sparse_statistics(char *model_root, fstm_model *model, corpus *corp, corpus *aa);
 
 double alpha_binary_search(document doc, double *x, double *opt);
 
 double alpha_gradient_search(document doc, double *x, double *opt);
 
-double fstm_Infer(char *model_root, char *save, corpus* corp);
+double fstm_Infer(char *model_root, char *save, corpus *corp);
 
 #endif

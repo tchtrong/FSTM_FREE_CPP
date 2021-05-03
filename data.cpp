@@ -20,7 +20,7 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 // USA
 
-#include "data.h"
+#include "data.hpp"
 
 corpus* read_data(char* data_filename, int UNSUPERVISED)
 {//this will read a file in either Libsvm format or LDA format

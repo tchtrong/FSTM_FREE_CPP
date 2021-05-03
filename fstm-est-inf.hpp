@@ -8,10 +8,10 @@
 #include <string.h>
 #include <time.h>
 
-#include "fstm.h"
-#include "data.h"
-#include "utils.h"
-#include "fstm-model.h"
+#include "fstm.hpp"
+#include "data.hpp"
+#include "utils.hpp"
+#include "fstm-model.hpp"
 
 void fstm_Learn(char* directory, corpus* corp);
 

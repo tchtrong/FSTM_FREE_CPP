@@ -20,7 +20,7 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 // USA
 
-#include "fstm-est-inf.h"
+#include "fstm-est-inf.hpp"
 
 void fstm_Learn(char* directory, corpus* corp)
 {

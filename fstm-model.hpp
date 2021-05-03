@@ -4,9 +4,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
-#include "fstm.h"
-#include "data.h"
-#include "utils.h"
+#include "fstm.hpp"
+#include "data.hpp"
+#include "utils.hpp"
 
 #define myrand() (double) (((unsigned long) randomMT()) / 4294967296.)
 #define NUM_INIT 1

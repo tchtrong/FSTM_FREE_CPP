@@ -25,7 +25,8 @@
 corpus *read_data(char *data_filename, int UNSUPERVISED)
 { //this will read a file in either Libsvm format or LDA format
 	FILE *fileptr;
-	size_t bytes, n, length;
+	size_t  n, length;
+	ssize_t bytes;
 	corpus *c;
 	int word, nd, nw, OFFSET, i;
 	double count;
